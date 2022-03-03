@@ -1,7 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-pretrained/
-cail2019_track2/ckpt/*
+pretrained/*
+# /cail2019_track2/ckpt/*
 *.py[cod]
 *$py.class
 
