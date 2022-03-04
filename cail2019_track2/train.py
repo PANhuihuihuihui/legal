@@ -57,7 +57,7 @@ flags.DEFINE_string(
     "for the task.")
 
 flags.DEFINE_string(
-    "bert_path", "/userhome/30/hjpan/legal/pretrained/chinese_L-12_H-768_A-12",
+    "bert_path", "/userhome/30/hjpan/legal/pretrained/multi_cased_L-12_H-768_A-12",
     "The dir corresponding to the pre-trained BERT model. ")
 
 flags.DEFINE_string(
@@ -85,7 +85,7 @@ flags.DEFINE_string(
 #     "Initial checkpoint (usually from a pre-trained BERT model).")
 
 flags.DEFINE_bool(
-    "do_lower_case", True,
+    "do_lower_case", False,
     "Whether to lower case the input text. Should be True for uncased "
     "models and False for cased models.")
 

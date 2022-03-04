@@ -59,9 +59,9 @@ if __name__ == '__main__':
     sentences, labels = load_file("data/divorce/train_selected.json")
 
     logging.info("开始载入bert模型")
-    model_1 = BERTModel(task=task, pb_model="pb/model.pb",
+    model_1 = BERTModel(task=task, pb_model="pb/divorce/model.pb",
                         tagDir="data/divorce/tags.txt", threshold=[0.5] * 20,
-                        vocab_file="/home/huanghui/data/chinese_L-12_H-768_A-12/vocab.txt")
+                        vocab_file="/userhome/30/hjpan/legal/pretrained/chinese_L-12_H-768_A-12/vocab.txt")
 
     logging.info("bert模型载入完毕，开始进行预测！！！\n")
     logging.info("模型开始预测\n")
@@ -72,6 +72,15 @@ if __name__ == '__main__':
     score_1, f1_1 = evaluate(predict_labels=predicts_1, target_labels=labels, tag_dir="data/divorce/tags.txt")
     logging.info(f1_1)
     logging.info("总评分如下： {}".format(score_1))
+
+# chinese bert
+# INFO:root:{'1': 0.96, '2': 0.92, '3': 0.92, '4': 0.94, '5': 0.92, '6': 0.94, '7': 0.92, '8': 0.97, '9': 0.98, '10': 0.87, '11': 0.84, '12': 0.15, '13': 0.85, '14': 0.53, '15': 0.83, '16': 0.83, '17': 0.75, '18': 0.15, '19': 0.32, '20': 0.64}
+# INFO:root:总评分如下： 0.8354149736395091
+
+
+
+
+
 
 
 

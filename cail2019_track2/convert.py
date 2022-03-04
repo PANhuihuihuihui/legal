@@ -14,4 +14,4 @@ convert调用参数说明
     :param bert_dir: bert预训练模型文件夹，下边只需要包含配置文件和词典
     """
 convert(task="divorce", tagDir="data/divorce/tags.txt", originDir="ckpt/divorce",
-        convertDir="pb/divorce", model_type="rcnnatt", bert_dir="/home/huanghui/data/chinese_L-12_H-768_A-12")
+        convertDir="pb/divorce", model_type="rcnnatt", bert_dir="/userhome/30/hjpan/legal/pretrained/chinese_L-12_H-768_A-12")
