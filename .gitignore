@@ -2,6 +2,7 @@
 __pycache__/
 pretrained/*
 /cail2019_track2/ckpt/*
+/huggface/data_prepare/*
 *.py[cod]
 *$py.class
 
