@@ -5,15 +5,28 @@ from transformers import default_data_collator
 from transformers import DataCollatorForLanguageModeling
 from datasets import load_from_disk
 import config
+import string
+import re
 
 
-tokenizer = AutoTokenizer.from_pretrained("zlucia/custom-legalbert")
+tokenizer = AutoTokenizer.from_pretrained("nlpaueb/legal-bert-base-uncased")
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=0.15)
 
 
+#example = "(ii)   If so, whether it was reasonable for P to continue its action against D1 after receiving the Joint Report and/or after the withdrawal of contribution notice against D1 by D2?"
+
+
+
+def clean_data(example):
+    tmp = re.sub(r'^(\d+).', '', example)
+    tmp = re.sub(r'^\((ix|iv|v?i{0,3})\)', '', tmp)
+    tmp = re.sub(r'^\((\d+)\)', '', tmp)
+    new_str = tmp.translate(str.maketrans('','',string.punctuation)).replace("’s",'').replace("s’",'s')
+    return new_str
+
 # date prepared for training
 def tokenize_function(examples):
-    lower = [x.lower() for x in examples["paragraphs"]]
+    lower = [clean_data(x.lower()) for x in examples["paragraphs"]]
     result = tokenizer(lower)
     if tokenizer.is_fast:
         result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
@@ -44,8 +57,6 @@ def group_texts(examples):
     return result
 
 
-
-
 ## data loader
 def getDataloader(hklii_dataset,eval_dataset):
     train_dataloader = DataLoader(
@@ -67,6 +78,14 @@ def getDataset():
     )
     hklii_dataset = tokenized_datasets.map(group_texts, batched=True,num_proc = 16)
 
+    # train_size = 10_000
+    # test_size = int(0.1 * train_size)
+
+    # hklii_dataset = hklii_dataset["train"].train_test_split(
+    #     train_size=train_size, test_size=test_size, seed=42
+    # )
+
+
     hklii_dataset = hklii_dataset.remove_columns(["word_ids"])
 
     eval_dataset = hklii_dataset["test"].map(
@@ -81,6 +100,7 @@ def getDataset():
             "masked_labels": "labels",
         }
     )
+    eval_dataset =  eval_dataset.remove_columns(["masked_token_type_ids"])
     return hklii_dataset,eval_dataset
 
 

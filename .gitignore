@@ -6,6 +6,9 @@ pretrained/*
 *.py[cod]
 *$py.class
 
+# pytorch training 
+*.bin
+
 # C extensions
 *.so
 
