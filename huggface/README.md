@@ -47,18 +47,18 @@ config the model and run
 
 prtraining material are all from HKLII
 
-| Model name        |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
-|:-----------       |:--------: |:------------------:   |:-----------------:|:---------:|
-| custom-legalbert  | mask      | 18.370377004          | 4.567             | 32000     |
-| legal-bert-base   | mask      | 11.055                | 3.376             | 30522     |
-| multilingual bert | mask      | 15.6468               | 3.632             | 105879    |
-| custom-legalbert  | mask+cls  | todo                  |todo               | todo      |
-| legal-bert-base   | mask+cls  | todo                  |todo               | todo      |
-| multilingual bert | mask+cls  | todo                  |todo               | todo      |
+| Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
+|:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
+| [custom-legalbert][1]     | mask      | 18.370377004          | 4.567             | 32000     |
+| [legal-bert-base][2]      | mask      | 11.055                | 3.376             | 30522     |
+| [multilingual bert][3]    | mask      | 15.6468               | 3.632             | 105879    |
+| [custom-legalbert][1]     | mask+cls  | todo                  |todo               | todo      |
+| [legal-bert-base][2]      | mask+cls  | todo                  |todo               | todo      |
+| [multilingual bert][3]    | mask+cls  | todo                  |todo               | todo      |
 
 because in HKLII datasets it is possible to have chinese and english in same document multilingual 
 
-### finetune on downstream task
+### Finetune on downstream task
 
 1. [HKLII](https://www.hklii.hk/eng/)
 
@@ -88,5 +88,9 @@ because in HKLII datasets it is possible to have chinese and english in same doc
 
 [MIT](LICENSE) © Huijie Pan 
 
+
+[1]:https://huggingface.co/zlucia/custom-legalbert
+[2]:https://huggingface.co/nlpaueb/legal-bert-small-uncased
+[3]:bert-base-multilingual-uncased
 
 
