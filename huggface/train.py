@@ -10,8 +10,7 @@ from transformers import AutoModelForMaskedLM
 from dataloader import getDataloader,getDataset
 import config
 
-model_checkpoint = "zlucia/custom-legalbert"
-model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)
+model = AutoModelForMaskedLM.from_pretrained(config.model_checkpoint)
 # datasets
 
 hklii_dataset,eval_dataset = getDataset()
@@ -19,7 +18,7 @@ hklii_dataset,eval_dataset = getDataset()
 train_dataloader,eval_dataloader = getDataloader(hklii_dataset,eval_dataset)
 print("got dataloader")
 # training
-model = AutoModelForMaskedLM.from_pretrained(model_checkpoint)
+model = AutoModelForMaskedLM.from_pretrained(config.model_checkpoint)
 
 optimizer = AdamW(model.parameters(), lr=5e-5)
 
@@ -56,7 +55,7 @@ try:
     perplexity = math.exp(torch.mean(losses))
 except OverflowError:
     perplexity = float("inf")
-log.append("model_name: {}".format(model_checkpoint))
+log.append("model_name: {}".format(config.model_checkpoint))
 log.append("Perplexity (before): {}".format(perplexity))
 print(log[-1])
 

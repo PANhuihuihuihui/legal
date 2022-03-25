@@ -9,7 +9,7 @@ import string
 import re
 
 
-tokenizer = AutoTokenizer.from_pretrained("nlpaueb/legal-bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained(config.model_checkpoint)
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=0.15)
 
 
@@ -71,11 +71,11 @@ def getDataloader(hklii_dataset,eval_dataset):
     return train_dataloader,eval_dataloader
 
 def getDataset():
-    hklii_dataset=load_from_disk("/home/huijie/legal/huggface/data_prepare/HKLII/" )
+    tokenized_datasets=load_from_disk("/home/huijie/legal/huggface/data_prepare/HKLII_all/" )
 
-    tokenized_datasets = hklii_dataset.map(
-        tokenize_function, batched=True, remove_columns=["ID","topic","paragraphs"],num_proc =16
-    )
+    # tokenized_datasets = hklii_dataset.map(
+    #     tokenize_function, batched=True, remove_columns=["ID","topic","paragraphs"],num_proc =16
+    # )
     hklii_dataset = tokenized_datasets.map(group_texts, batched=True,num_proc = 16)
 
     # train_size = 10_000
