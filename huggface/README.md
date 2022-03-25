@@ -12,7 +12,10 @@
 ## TODO
 @ 3.25
 - [ ] 与 Xiangwei  对接pretrain的下游任务
-- [ ] cls 的训练代码： 查看标准，实现和训练
+- [ ] 训练代码优化
+    - [ ] cls 的训练代码： 查看标准，实现和训练
+    - [ ] Roberta 训练策略
+    - [ ] 梯度累计 增大batch size
 - [ ] 继续整理Ben那边的任务, 标注到下游任务
 
 ## Backgroud
