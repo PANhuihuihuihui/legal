@@ -11,11 +11,9 @@
 
 ## TODO
 @ 3.25
-
-- [ ] 与 Xiangwei @noob990325  对接pretrain的下游任务
+- [ ] 与 Xiangwei  对接pretrain的下游任务
 - [ ] cls 的训练代码： 查看标准，实现和训练
 - [ ] 继续整理Ben那边的任务, 标注到下游任务
-- [x] 
 
 ## Backgroud
 - HKLII dataset stat(summary of token length of in each paragraph)
