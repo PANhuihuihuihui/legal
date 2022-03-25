@@ -53,6 +53,15 @@ for topic in folder_list:
 # 75%         58.000000
 # max       2271.000000
 
+# words of the chinese
+# count    1.458006e+06
+# mean     7.819433e+01
+# std      9.874830e+01
+# min      1.000000e+00
+# 25%      1.500000e+01
+# 50%      4.400000e+01
+# 75%      1.080000e+02
+# max      6.492000e+03
     
 # build hugface datasets
 from datasets import load_dataset
