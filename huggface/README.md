@@ -18,8 +18,8 @@
 - [x] 
 
 ## Backgroud
-- HKLII dataset stat
-    - this is stat summary of token length of in each paragraph
+- HKLII dataset stat(summary of token length of in each paragraph)
+
     | stat value | value    |
     |:----------:|:--------:|
     |count |  2.851737e+06  |
@@ -30,6 +30,7 @@
     |50%   |   65           |
     |75%   |   112          |
     |max   |   11819        |
+    
 - [Datasets format](data_prepare/Readme.md)
     
 
@@ -57,16 +58,14 @@ config the model and run
 
 ### pertraining
 
-    prtraining material are all from HKLII
-
-    | Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
-    |:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
-    | [custom-legalbert][1]     | mask      | 18.370377004          | 4.567             | 32000     |
-    | [legal-bert-base][2]      | mask      | 11.055                | 3.376             | 30522     |
-    | [multilingual bert][3]    | mask      | 15.6468               | 3.632             | 105879    |
-    | [custom-legalbert][1]     | mask+cls  | todo                  |todo               | todo      |
-    | [legal-bert-base][2]      | mask+cls  | todo                  |todo               | todo      |
-    | [multilingual bert][3]    | mask+cls  | todo                  |todo               | todo      |
+| Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
+|:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
+| [custom-legalbert][1]     | mask      | 18.370377004          | 4.567             | 32000     |
+| [legal-bert-base][2]      | mask      | 11.055                | 3.376             | 30522     |
+| [multilingual bert][3]    | mask      | 15.6468               | 3.632             | 105879    |
+| [custom-legalbert][1]     | mask+cls  | todo                  |todo               | todo      |
+| [legal-bert-base][2]      | mask+cls  | todo                  |todo               | todo      |
+| [multilingual bert][3]    | mask+cls  | todo                  |todo               | todo      |
 
 because in HKLII datasets it is possible to have chinese and english in same document multilingual 
 
