@@ -19,7 +19,7 @@
 
 ## Backgroud
 - HKLII dataset stat
-    this is stat summary of token length of in each paragraph
+    - this is stat summary of token length of in each paragraph
     | stat value | value    |
     |:----------:|:--------:|
     |count |  2.851737e+06  |
@@ -57,8 +57,7 @@ config the model and run
 
 ### pertraining
 
-prtraining material are all from HKLII
-- 
+    prtraining material are all from HKLII
 
 | Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
 |:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
