@@ -63,7 +63,7 @@ print(log[-1])
 
 
 # training
-progress_bar = tqdm(range(num_training_steps))
+progress_bar = tqdm(range(num_training_steps),ncols = 25 )
 
 
 

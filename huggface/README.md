@@ -10,16 +10,17 @@
 ## Backgroud
 - HKLII dataset stat
 
-    | stat value | value |
-    |:----:|:--------:|
-    |count |  2.851737e+06 |
-    |mean  |   8.366615e+01|
-    |std   |   7.347763e+01|
-    |min   |   8.000000e+00|
-    |25%   |   3.400000e+01|
-    |50%   |   6.500000e+01|
-    |75%   |   1.120000e+02|
-    |max   |   1.181900e+04|
+    | stat value | value    |
+    |:----------:|:--------:|
+    |count |  2.851737e+06  |
+    |mean  |   83.66615     |
+    |std   |   73.47763     |
+    |min   |   8.0          |
+    |25%   |   34           |
+    |50%   |   65           |
+    |75%   |   112          |
+    |max   |   11819        |
+    
 ## Install 
 ```sh
 cd huggface
@@ -50,12 +51,12 @@ prtraining material are all from HKLII
 |:-----------       |:--------: |:------------------:   |:-----------------:|:---------:|
 | custom-legalbert  | mask      | 18.370377004          | 4.567             | 32000     |
 | legal-bert-base   | mask      | 11.055                | 3.376             | 30522     |
-| multilingual bert | mask      | 15.6468               | 3.632             | todo      |
+| multilingual bert | mask      | 15.6468               | 3.632             | 105879    |
 | custom-legalbert  | mask+cls  | todo                  |todo               | todo      |
 | legal-bert-base   | mask+cls  | todo                  |todo               | todo      |
 | multilingual bert | mask+cls  | todo                  |todo               | todo      |
 
-because of 
+because in HKLII datasets it is possible to have chinese and english in same document multilingual 
 
 ### finetune on downstream task
 
