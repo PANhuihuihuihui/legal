@@ -2,14 +2,23 @@
 
 
 ## Table of content
+- [ToDo](#todo)
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
 - [Experiment result](#experiment)
 - [License](#license)
+
+## TODO
+@ 3.25
+- [] 与 [Xiangwei](@noob990325)  对接pretrain的下游任务
+- [] cls 的训练代码： 查看标准，实现和训练
+- [] 继续整理Ben那边的任务, 标注到下游任务
+- [x] 
+
 ## Backgroud
 - HKLII dataset stat
-
+    this is stat summary of token length of in each paragraph
     | stat value | value    |
     |:----------:|:--------:|
     |count |  2.851737e+06  |
@@ -20,7 +29,9 @@
     |50%   |   65           |
     |75%   |   112          |
     |max   |   11819        |
+- [Datasets format](data_prepare/Readme.md)
     
+
 ## Install 
 ```sh
 cd huggface
@@ -46,6 +57,7 @@ config the model and run
 ### pertraining
 
 prtraining material are all from HKLII
+- 
 
 | Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
 |:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
