@@ -1,0 +1,12 @@
+model_name: bert-base-multilingual-uncased
+Perplexity (before): 15.646850510731959
+>>> Epoch 0: Perplexity: 3.936272663375895
+>>> Epoch 1: Perplexity: 3.5327769945561243
+>>> Epoch 2: Perplexity: 3.3264129184043343
+>>> Epoch 3: Perplexity: 3.184743292693196
+>>> Epoch 4: Perplexity: 3.084006748171416
+>>> Epoch 5: Perplexity: 3.0097002710045273
+>>> Epoch 6: Perplexity: 2.9520704624766574
+>>> Epoch 7: Perplexity: 2.9028728618094743
+>>> Epoch 8: Perplexity: 2.8684545578925595
+>>> Epoch 9: Perplexity: 2.850208444132162

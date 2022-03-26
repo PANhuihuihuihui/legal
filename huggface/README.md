@@ -63,7 +63,7 @@ config the model and run
 |:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
 | [custom-legalbert][1]     | mask      | 18.370377004          | 4.567             | 32000     |
 | [legal-bert-base][2]      | mask      | 11.055                | 3.376             | 30522     |
-| [multilingual bert][3]    | mask      | 15.6468               | 3.632             | 105879    |
+| [multilingual bert][3]    | mask      | 15.6468               | 2.850             | 105879    |
 | [custom-legalbert][1]     | mask+cls  | todo                  |todo               | todo      |
 | [legal-bert-base][2]      | mask+cls  | todo                  |todo               | todo      |
 | [multilingual bert][3]    | mask+cls  | todo                  |todo               | todo      |
