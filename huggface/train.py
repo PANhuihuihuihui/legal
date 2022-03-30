@@ -20,7 +20,7 @@ print("got dataloader")
 # training
 model = AutoModelForMaskedLM.from_pretrained(config.model_checkpoint)
 
-optimizer = AdamW(model.parameters(), lr=5e-5)
+optimizer = AdamW(model.parameters(), lr=6e-5)
 
 
 accelerator = Accelerator()
@@ -63,7 +63,7 @@ print(log[-1])
 
 
 # training
-progress_bar = tqdm(range(num_training_steps),ncols = 25 )
+progress_bar = tqdm(range(num_training_steps),ncols = 100 )
 
 
 

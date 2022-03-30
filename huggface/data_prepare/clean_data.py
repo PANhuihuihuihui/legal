@@ -34,6 +34,7 @@ for topic in folder_list:
             for i in value_list:
                 if len(i.split()) < 20:
                     continue   
+                
                 dic= {
                     "paragraphs": i,
                     "topic": topic,

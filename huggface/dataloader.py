@@ -71,7 +71,7 @@ def getDataloader(hklii_dataset,eval_dataset):
     return train_dataloader,eval_dataloader
 
 def getDataset():
-    tokenized_datasets=load_from_disk("/home/huijie/legal/huggface/data_prepare/HKLII_all/" )
+    tokenized_datasets=load_from_disk("/home/huijie/legal/huggface/data_prepare/HKLII_all_cail/" )
 
     # tokenized_datasets = hklii_dataset.map(
     #     tokenize_function, batched=True, remove_columns=["ID","topic","paragraphs"],num_proc =16

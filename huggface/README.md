@@ -14,6 +14,7 @@
 - [x] 与 Xiangwei  对接pretrain的下游任务
 - [ ] 训练代码优化
     - [x] cls 的训练代码： 查看标准，实现和训练
+    - [x] 加入法研杯的训练数据,new mbert.
     - [ ] Roberta 训练策略
     - [ ] 梯度累计 增大batch size
 - [ ] 继续整理Ben那边的任务, 标注到下游任务
@@ -31,6 +32,19 @@
     |50%   |   65           |
     |75%   |   112          |
     |max   |   11819        |
+
+- HKLII + caill
+
+    | stat value | value    |
+    |:----------:|:--------:|
+    |count |  2.883591e+06  |
+    |mean  |   87.13742     |
+    |std   |   949.2628     |
+    |min   |   8.0          |
+    |25%   |   34           |
+    |50%   |   66           |
+    |75%   |   114          |
+    |max   |   17415        |
 
 - [Datasets format](data_prepare/Readme.md)
     
