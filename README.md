@@ -16,7 +16,8 @@
     - [x] cls 的训练代码： 查看标准，实现和训练
     - [x] 加入法研杯的训练数据,new mbert.
     - [ ] Roberta 训练策略
-    - [ ] 梯度累计 增大batch size
+    - [x] 梯度累计 增大batch size
+    - 
 - [ ] 继续整理Ben那边的任务, 标注到下游任务
 
 ## Backgroud
@@ -73,14 +74,18 @@ config the model and run
 
 ### pertraining
 
-| Model name                |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
-|:----------------------    |:--------: |:------------------:   |:-----------------:|:---------:|
-| [custom-legalbert][1]     | mask      | 18.370377004          | 4.567             | 32000     |
-| [legal-bert-base][2]      | mask      | 11.055                | 3.376             | 30522     |
-| [multilingual bert][3]    | mask      | 15.6468               | 2.850             | 105879    |
-| [custom-legalbert][1]     | mask+cls  | todo                  |todo               | todo      |
-| [legal-bert-base][2]      | mask+cls  | todo                  |todo               | todo      |
-| [multilingual bert][3]    | mask+cls  | todo                  |todo               | todo      |
+| Model name                            |  Method   | Perplexity (before)   | Perplexity (after)| Vocb size |
+|:----------------------                |:--------: |:------------------:   |:-----------------:|:---------:|
+| [custom-legalbert][1]                 | mask      | 18.370377004          | 4.567             | 32000     |
+| [legal-bert-base][2]                  | mask      | 11.055                | 3.376             | 30522     |
+| [multilingual bert][3]                | mask      | 15.6468               | 2.850             | 105879    |
+| [multilingual bert (caill added)][3]  | mask      | 15.7227               | 3.04              | 105879    |
+| [custom-legalbert][1]                 | mask+cls  | todo                  |todo               | todo      |
+| [legal-bert-base][2]                  | mask+cls  | todo                  |todo               | todo      |
+| [multilingual bert][3]                | mask+cls  | todo                  |todo               | todo      |
+
+
+
 
 because in HKLII datasets it is possible to have chinese and english in same document multilingual 
 
