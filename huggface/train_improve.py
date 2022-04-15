@@ -9,9 +9,6 @@ from transformers import get_scheduler, AutoModelForMaskedLM
 import config
 
 
-
-
-model = AutoModelForMaskedLM.from_pretrained(config.model_checkpoint)
 # datasets
 
 hklii_dataset,eval_dataset = getDataset()

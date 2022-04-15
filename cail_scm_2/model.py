@@ -21,7 +21,7 @@ from transformers import (
     BertConfig,
     BertTokenizer,
 )
-from transformers.modeling_bert import BertPreTrainedModel, BertModel
+from transformers import BertPreTrainedModel, BertModel
 
 logger = logging.getLogger("train model")
 
@@ -329,6 +329,7 @@ class BertModelTrainer(object):
     def __init__(
         self,
         dataset_path,
+        bert_name,
         bert_model_dir,
         param: HyperParameters,
         algorithm,
@@ -345,6 +346,7 @@ class BertModelTrainer(object):
         :param test_ground_truth_path: 固定的测试集的标记
         """
         self.dataset_path = dataset_path
+        self.bert_name = bert_name
         self.bert_model_dir = bert_model_dir
         self.param = param
         self.test_input_path = test_input_path
@@ -435,7 +437,7 @@ class BertModelTrainer(object):
             os.makedirs(model_dir)
 
         tokenizer = BertTokenizer.from_pretrained(
-            self.bert_model_dir, do_lower_case=True
+            self.bert_name, do_lower_case=True
         )
         data = self.load_dataset(kfold)
 
@@ -528,7 +530,7 @@ class BertModelTrainer(object):
             bert_model.train()
             for epoch in range(int(self.param.epochs)):
                 tr_loss = 0
-                steps = tqdm(train_dataloader)
+                steps = tqdm(train_dataloader,ncols = 110)
                 for step, batch in enumerate(steps):
                     # if step % 200 == 0:
                     #     model = BertSimMatchModel(bert_model, tokenizer, self.param.max_length, self.algorithm)

@@ -18,8 +18,8 @@ def get_score(ground_truth_path, output_path):
 
 
 if __name__ == "__main__":
-    ground_truth_path = "/data/ground_truth.txt"
-    output_path = "/output/output.txt"
+    ground_truth_path = "/home/huijie/legal/cail_scm_2/data/test/ground_truth.txt"
+    output_path = "/home/huijie/legal/cail_scm_1/ms_scm/output.txt"
     if len(sys.argv) == 3:
         ground_truth_path = sys.argv[1]
         output_path = sys.argv[2]
