@@ -8,35 +8,22 @@ from transformers import AutoModel
 
 
 class CNN_Text(nn.Module):
-    
-    def __init__(self, args,embed_dim,sent_length):
+    def __init__(self,embed_dim,sent_length,dropout = 0.1):
         super(CNN_Text, self).__init__()
-        self.args = args
-    
-        D = args.embed_dim
         Ci = 1
-        Co = args.kernel_num
+        Co = embed_dim*2
         K = sent_length*+1 #kernel_sizes
-        self.convs = nn.Conv2d(Ci, Co, (K, embed_dim))
-        self.dropout = nn.Dropout(args.dropout)
+        self.conv = nn.Conv2d(Ci, Co, (K, embed_dim))
+        self.dropout = nn.Dropout(dropout)
 
-        if self.args.static:
-            self.embed.weight.requires_grad = False
-
-    def forward(self, x):
-        x = self.embed(x)  # (N, W, D)
-    
+    def forward(self, x):    
         x = x.unsqueeze(1)  # (N, Ci, W, D)
 
-        x = [F.relu(conv(x)).squeeze(3) for conv in self.convs]  # [(N, Co, W), ...]*len(Ks)
+        x = F.relu(self.conv(x)).squeeze(3)   #(N, Co, W)
 
-        x = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in x]  # [(N, Co), ...]*len(Ks)
-
-        x = torch.cat(x, 1)
-
-        x = self.dropout(x)  # (N, len(Ks)*Co)
-        logit = self.fc1(x)  # (N, C)
-        return logit
+        x = F.max_pool1d(x, x.size(2)).squeeze(2) # (N, Co)
+        x = self.dropout(x)  # (N, Co)
+        return x
 
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
@@ -59,7 +46,7 @@ class Extractor(nn.Module):
         self.back_bone = AutoModel.from_pretrained(back_bone_name)
         self.hidden_size = self.back_bone.config.hidden_size
         self.dropout = nn.Dropout(0.1)
-        self.classifier = nn.Linear(hidden_size, num_labels)
+        self.classifier = nn.Linear(self.hidden_size, num_labels)
         self.stage = stage
     def forward(self,x):
         ec = self.back_bone(x).pooler_output
@@ -75,12 +62,13 @@ class Fuser(nn.Module):
 
     
     """
-    def __init__(self,extractor) -> None:
-        super().__init__()
+    def __init__(self,extractor):
+        super(Fuser,self).__init__()
         self.extractor = extractor
         self.cnn = CNN_Text()
-        self.lstm = 
-    def forward(x):
+        embed_size = extractor.back_bone.config.hidden_size
+        self.lstm = nn.LSTM(embed_size,embed_size//2,batch_first = True,bidirectional=True)
+    def forward(self,x):
         x= x.permuate(1,0,2,3)
         Mc = []
         Mk = []
@@ -89,8 +77,22 @@ class Fuser(nn.Module):
             Mc.append(ec)
             Mk.append(ek) # b S E
         Mc = torch.stack(Mc,dim = 1).squeeze(2) # b d*S E
-        Mc = self.cnn(Mc)
-        Mk = torch.stack(Mk,dim = 1)
+        Mk = torch.stack(Mk,dim = 1).squeeze(2) # b d*S E
+        Mc = self.cnn(Mc) # b Co
+        Mk,_ = self.lstm(Mk) #b ds E
+        Mk = Mk.sum(dim = 1) # b E
+        x = torch.cat((Mc,Mk),1) # b (Co + E)
+        return x 
+
+
+
+
+
+
+
+
+
+
 
 
 
