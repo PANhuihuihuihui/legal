@@ -1,17 +1,17 @@
 
 import json
-import logging
-import os
-import random
 from typing import Tuple, List, Union
 
 
 import numpy as np
 import pandas as pd
 import torch
-from sklearn.model_selection import KFold
+from torch import nn
+from torch.autograd import Variable
+from torch.nn import CrossEntropyLoss
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import Dataset
 from torch.utils.data.dataloader import default_collate
-
 
 
 def augment(df):
@@ -22,14 +22,12 @@ def augment(df):
     df_cp1["label"] = df_cp1["label"].apply(
         lambda label: "C" if label == "B" else "B"
     )
-
     # 自反性增广
     df_cp2 = df.copy()
     df_cp2["A"] = df["C"]
     df_cp2["B"] = df["C"]
     df_cp2["C"] = df["A"]
     df_cp2["label"] = "B"
-
     # 自反性+反对称增广
     df_cp3 = df.copy()
     df_cp3["A"] = df["C"]
@@ -46,7 +44,6 @@ def augment(df):
         axis=1,
         result_type="broadcast",
     )
-
     # 启发式+反对称增广
     df_cp5 = df.copy()
     df_cp5 = df_cp5.apply(
@@ -56,7 +53,6 @@ def augment(df):
         axis=1,
         result_type="broadcast",
     )
-
     df = pd.concat([df, df_cp1, df_cp2, df_cp3, df_cp4, df_cp5])
     df = df.drop_duplicates()
     df = df.sample(frac=1)
@@ -90,4 +86,9 @@ def get_collator(max_len, device, tokenizer, model_class):
 
     if model_class == BertForSimMatchModel:
         return two_pair_collate_fn
+
+if __name__ == '__main__':
+    df = pd.read_json (r'Path where you saved the JSON file\File Name.json')
+    df = augment(df)
+    df.to_json(r'Path to store the exported JSON file\File Name.json')
 
