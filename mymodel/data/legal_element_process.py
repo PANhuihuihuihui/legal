@@ -2,6 +2,8 @@
 # file pattern [ { sentence: "", label: ""}]
 
 # load file
+import json
+import codecs
 with codecs.open("/home/huijie/legal/huggface/data_prepare/data/HKLII.json", 'a+') as json_file:
     with open('/home/xiangwei/classify/divorce.json','r',encoding='utf8')as fp:
         lines=fp.readlines()
