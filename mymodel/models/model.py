@@ -28,7 +28,7 @@ class Matcher(nn.Module):
     #         nn.init.constant_(m.weight, 1.0)
 
 
-def build_model(args):
+def build(args):
     if args.stage ==1:
         model = build_extractor(args)
         return model

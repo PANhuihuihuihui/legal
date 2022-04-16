@@ -64,10 +64,14 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 
 @torch.no_grad()
-def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir):
+def evaluate(model, data_loader, base_ds, device, output_dir):
     model.eval()
-    criterion.eval()
 
+
+    for step, batch in enumerate(data_loader):
+        outputs = model(**batch)
+        # Batch 
+        losses.append(accelerator.gather(loss.repeat(config.batch_size))
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
     header = 'Test:'

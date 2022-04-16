@@ -106,10 +106,12 @@ def get_element_datasets(args):
         return result
 
     dataset = load_dataset("json", data_files="/home/huijie/legal/mymodel/data/legal_element.json")
+    dataset = dataset.shuffle(seed=args.seed)
     tokenized_datasets = dataset.map(
         tokenize_function, batched=True, remove_columns=["class","sentence","paragraphs"],num_proc =16
     )
-    return tokenized_datasets
+
+    return tokenized_datasets["train"],tokenized_datasets["test"]
 
 
     
