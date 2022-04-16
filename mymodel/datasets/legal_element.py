@@ -4,20 +4,8 @@ from torch.utils.data import DataLoader
 from transformers import default_data_collator
 from transformers import DataCollatorForLanguageModeling
 from datasets import load_from_disk
-import config
 import string
 import re
-
-
-def get_legal_element(args):
-
-
-    
-    tokenizer = AutoTokenizer.from_pretrained(args.backbone)
-    tokenized_datasets = hklii_dataset.map(
-        tokenize_function, batched=True, remove_columns=["ID","topic","paragraphs"],num_proc =16
-    )
-
 
 
 
@@ -33,12 +21,7 @@ def clean_data(example):
     return new_str
 
 # date prepared for training
-def tokenize_function(examples):
-    lower = [clean_data(x.lower()) for x in examples["paragraphs"]]
-    result = tokenizer(lower)
-    if tokenizer.is_fast:
-        result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
-    return result
+
 
 
 def insert_random_mask(batch):
@@ -110,5 +93,40 @@ def getDataset():
     )
     eval_dataset =  eval_dataset.remove_columns(["masked_token_type_ids"])
     return hklii_dataset,eval_dataset
+
+
+
+def get_element_datasets(args):
+    tokenizer = AutoTokenizer.from_pretrained(args.backbone)
+
+    def tokenize_function(examples):
+        result = tokenizer(examples["sentence"])
+        if tokenizer.is_fast:
+            result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
+        return result
+
+    dataset = load_dataset("json", data_files="/home/huijie/legal/mymodel/data/legal_element.json")
+    tokenized_datasets = dataset.map(
+        tokenize_function, batched=True, remove_columns=["class","sentence","paragraphs"],num_proc =16
+    )
+    return tokenized_datasets
+
+
+    
+def get_scm_datasets(args):
+    tokenizer = AutoTokenizer.from_pretrained(args.backbone)
+
+    def tokenize_function(examples):
+        result = tokenizer(examples["sentence"])
+        if tokenizer.is_fast:
+            result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
+        return result
+
+    dataset = load_dataset("json", data_files="/home/huijie/legal/mymodel/data/legal_element.json")
+    tokenized_datasets = dataset.map(
+        tokenize_function, batched=True, remove_columns=["class","sentence","paragraphs"],num_proc =16
+    )
+    return tokenized_datasets
+
 
 
