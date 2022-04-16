@@ -2,7 +2,7 @@ import torch
 from torch import FUSE_ADD_RELU, nn
 import torch.nn.functional as F
 
-from extractor import build_fuser,build_extractor
+from .extractor import build_fuser,build_extractor
 
 class Matcher(nn.Module):
     def __init__(self,args,fuser) -> None:
