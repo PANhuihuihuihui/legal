@@ -1,4 +1,4 @@
-from .model import build_model
+from .model import build
 
-def build(args):
-    return build_model(args)
+def build_model(args):
+    return build(args)

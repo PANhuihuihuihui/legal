@@ -5,12 +5,11 @@ import math
 import os
 import sys
 from typing import Iterable
-from numpy import True_
-
 import torch
-from utils import focal_loss,eval_matrix
+from utils import focal_loss
 from accelerate import Accelerator
 from tqdm import tqdm
+import logging
 logger = logging.getLogger("train model")
 
 

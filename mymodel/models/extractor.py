@@ -78,7 +78,7 @@ class Fuser(nn.Module):
         return x 
 
 def build_extractor(args):
-    back_bone = AutoModel.from_pretrained(args.back_bone_name)
+    back_bone = AutoModel.from_pretrained(args.back_bone)
     model = Extractor(args,back_bone)
     return model
 

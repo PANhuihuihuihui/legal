@@ -33,17 +33,17 @@ def get_args_parser():
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=10, type=int)
     parser.add_argument('--lr_drop', default=6, type=int)
-    parser.add_argument('--clip_max_norm', default=0.5, type=float,
+    parser.add_argument('--clip_max_norm', default=1, type=float,
                         help='gradient clipping max norm')
 
     # Model parameters
     parser.add_argument('--stage', default=2, type=int)
+    parser.add_argument('--num_labels', default=60, type=int)
     parser.add_argument('--frozen_weights', type=str, default=None,
                         help="Path to the pretrained model. If set, only the mask head will be trained")
     # * Backbone
-    parser.add_argument('--backbone', default='bert-base-multilingual-uncased', type=str,
+    parser.add_argument('--back_bone', default='bert-base-multilingual-uncased', type=str,
                         help="Name of the bert backbone to use")
-
 
 
     # Loss
@@ -58,7 +58,7 @@ def get_args_parser():
     parser.add_argument('--scm_path', type=str)
     parser.add_argument('--legal_element_path', type=str)
 
-    parser.add_argument('--output_dir', default='',
+    parser.add_argument('--output_dir', default='/home/huijie/legal/mymodel/saved_model/',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
@@ -72,6 +72,8 @@ def get_args_parser():
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
+    parser.add_argument('--local_rank', type=int,
+                        help='local rank')
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     return parser
 

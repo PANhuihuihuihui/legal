@@ -2,7 +2,6 @@ from datasets import load_dataset
 from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from transformers import default_data_collator
-from transformers import DataCollatorForLanguageModeling
 from datasets import load_from_disk
 import string
 import re
