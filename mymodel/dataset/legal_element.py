@@ -1,7 +1,6 @@
 from datasets import load_dataset
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, DataCollatorWithPadding
 from torch.utils.data import DataLoader
-from transformers import default_data_collator
 from datasets import load_from_disk
 import string
 import re
@@ -99,18 +98,18 @@ def get_element_datasets(args):
     tokenizer = AutoTokenizer.from_pretrained(args.backbone)
 
     def tokenize_function(examples):
-        result = tokenizer(examples["sentence"])
+        result = tokenizer(examples["sentence"],truncation = True,max_length = 256)
         if tokenizer.is_fast:
             result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
         return result
 
     dataset = load_dataset("json", data_files="/home/huijie/legal/mymodel/data/legal_element.json")
-    dataset = dataset.shuffle(seed=args.seed)
+    dataset = dataset.shuffle(seed=args.seed).rename_columns("lables","classification").train_test_split(0.1)
     tokenized_datasets = dataset.map(
-        tokenize_function, batched=True, remove_columns=["class","sentence","paragraphs"],num_proc =16
+        tokenize_function, batched=True, remove_columns=["class","sentence",],num_proc =16
     )
-
-    return tokenized_datasets["train"],tokenized_datasets["test"]
+    data_collator = DataCollatorWithPadding(tokenizer,padding= "max_length",max_length = 256,pad_to_multiple_of= 8),
+    return tokenized_datasets["train"],tokenized_datasets["test"],data_collator
 
 
     
@@ -118,16 +117,19 @@ def get_scm_datasets(args):
     tokenizer = AutoTokenizer.from_pretrained(args.backbone)
 
     def tokenize_function(examples):
-        result = tokenizer(examples["sentence"])
+        result = tokenizer(examples["sentence"],truncation = True,max_length = 512)
         if tokenizer.is_fast:
             result["word_ids"] = [result.word_ids(i) for i in range(len(result["input_ids"]))]
         return result
 
     dataset = load_dataset("json", data_files="/home/huijie/legal/mymodel/data/legal_element.json")
+    dataset = dataset.shuffle(seed=args.seed).rename_columns("lables","classification").train_test_split(0.1)
     tokenized_datasets = dataset.map(
-        tokenize_function, batched=True, remove_columns=["class","sentence","paragraphs"],num_proc =16
+        tokenize_function, batched=True, remove_columns=["class","sentence",],num_proc =16
     )
-    return tokenized_datasets
+    data_collator = DataCollatorWithPadding(tokenizer,padding= "max_length",max_length = 512,pad_to_multiple_of= 8),
+    return tokenized_datasets["train"],tokenized_datasets["test"],data_collator
+
 
 
 

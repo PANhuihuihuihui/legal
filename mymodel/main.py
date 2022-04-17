@@ -21,7 +21,6 @@ from torch.utils.data import DataLoader
 from models import build_model
 from dataset import build_dataset
 from engine import evaluate, train_one_epoch
-from transformers import default_data_collator
 from accelerate import Accelerator
 
 
@@ -130,10 +129,11 @@ def main(args):
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
     accelerator = Accelerator()
     with accelerator.main_process_first():
-        dataset_train,dataset_val = build_dataset(args)
-    train_dataloader = DataLoader(dataset_train,args.batch_size,collate_fn=default_data_collator)
-    eval_dataloader = DataLoader(dataset_val, args.batch_size,collate_fn=default_data_collator) 
-    # TODO check defult dataloader
+        dataset_train,dataset_val,data_collator = build_dataset(args)
+    
+    train_dataloader = DataLoader(dataset_train,args.batch_size,collate_fn=data_collator)
+    eval_dataloader = DataLoader(dataset_val, args.batch_size,collate_fn=data_collator) 
+    # TODO  done!
 
     
     model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
