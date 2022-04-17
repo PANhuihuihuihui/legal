@@ -126,14 +126,14 @@ def main(args):
     optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
                                   weight_decay=args.weight_decay)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
-
-    dataset_train,dataset_val = build_dataset(args)
-
+    accelerator = Accelerator()
+    with accelerator.main_process_first():
+        dataset_train,dataset_val = build_dataset(args)
     train_dataloader = DataLoader(dataset_train,args.batch_size,collate_fn=default_data_collator)
     eval_dataloader = DataLoader(dataset_val, args.batch_size,collate_fn=default_data_collator) 
     # TODO check defult dataloader
 
-    accelerator = Accelerator()
+    
     model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
         model, optimizer, train_dataloader, eval_dataloader
     )
@@ -161,31 +161,36 @@ def main(args):
             model, train_dataloader, optimizer, device, epoch,
             args.clip_max_norm)
         lr_scheduler.step()
-        if args.output_dir and (epoch + 1) % 3 == 0:
-            checkpoint_path= (output_dir / f'checkpoint{epoch:04}.pth')
-            utils.save_on_master({
-                'model': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'lr_scheduler': lr_scheduler.state_dict(),
-                'epoch': epoch,
-                'args': args,
-            }, checkpoint_path)
-        logger.info(train_stats)
-        test_stats = evaluate(
-            model, eval_dataloader, device, args.output_dir
-        )
+        # if args.output_dir and (epoch + 1) % 3 == 0:
+        #     checkpoint_path= (output_dir / f'checkpoint{epoch:04}.pth')
+        #     utils.save_on_master({
+        #         'model': model.state_dict(),
+        #         'optimizer': optimizer.state_dict(),
+        #         'lr_scheduler': lr_scheduler.state_dict(),
+        #         'epoch': epoch,
+        #         'args': args,
+        #     }, checkpoint_path)
 
-        if args.output_dir and utils.is_main_process():
-            # for evaluation logs
-            if coco_evaluator is not None:
-                (output_dir / 'eval').mkdir(exist_ok=True)
-                if "bbox" in coco_evaluator.coco_eval:
-                    filenames = ['latest.pth']
-                    if epoch % 50 == 0:
-                        filenames.append(f'{epoch:03}.pth')
-                    for name in filenames:
-                        torch.save(coco_evaluator.coco_eval["bbox"].eval,
-                                   output_dir / "eval" / name)
+        test_stats = evaluate(
+            model, eval_dataloader, accelerator,device, args.batch_size
+        )
+        logger.info(test_stats)
+
+        # if args.output_dir and utils.is_main_process():
+        #     # for evaluation logs
+        #     if coco_evaluator is not None:
+        #         (output_dir / 'eval').mkdir(exist_ok=True)
+        #         if "bbox" in coco_evaluator.coco_eval:
+        #             filenames = ['latest.pth']
+        #             if epoch % 50 == 0:
+        #                 filenames.append(f'{epoch:03}.pth')
+        #             for name in filenames:
+        #                 torch.save(coco_evaluator.coco_eval["bbox"].eval,
+        #                            output_dir / "eval" / name)
+
+        accelerator.wait_for_everyone()
+        unwrapped_model = accelerator.unwrap_model(model)
+        unwrapped_model.save_pretrained(args.output_dir, save_function=accelerator.save)
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -193,7 +198,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Conditional DETR training and evaluation script', parents=[get_args_parser()])
+    parser = argparse.ArgumentParser('SCM training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)

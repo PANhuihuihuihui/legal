@@ -5,143 +5,82 @@ import math
 import os
 import sys
 from typing import Iterable
+from numpy import True_
 
 import torch
-
-import util.misc as utils
-from datasets.coco_eval import CocoEvaluator
-from datasets.panoptic_eval import PanopticEvaluator
-
+from utils import focal_loss,eval_matrix
+from accelerate import Accelerator
+from tqdm import tqdm
 logger = logging.getLogger("train model")
 
 
-def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
+def train_one_epoch(model: torch.nn.Module, accelerator:Accelerator,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0):
     model.train()
-    criterion.train()
     logger.info('Epoch: [{}]'.format(epoch))
+    tr_loss = 0
     # metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     # metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
-    print_freq = 10
-    for samples, targets in enumerate(data_loader):
-        samples = samples.to(device)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
-        outputs = model(samples)
-        loss_dict = criterion(outputs, targets)
-        weight_dict = criterion.weight_dict
-        losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
-
-
-        loss_value = losses_reduced_scaled.item()
+    steps = tqdm(data_loader,ncols = 110)
+    for step,batch in enumerate(steps):
+        targets = batch.pop("classification").to(device)
+        batch = batch.to(device)
+        outputs = model(**batch)
+        loss = focal_loss(outputs, targets)
+        loss_value = loss.item()
+        tr_loss += loss_value
 
         if not math.isfinite(loss_value):
             print("Loss is {}, stopping training".format(loss_value))
-            print(loss_dict_reduced)
             sys.exit(1)
 
         optimizer.zero_grad()
-        losses.backward()
+        accelerator.backward(loss)
         if max_norm > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
         optimizer.step()
+        steps.set_description("Epoch {}, Loss {:.7f}".format(epoch + 1, loss.item()))
 
-        metric_logger.update(loss=loss_value, **loss_dict_reduced_scaled, **loss_dict_reduced_unscaled)
-        metric_logger.update(class_error=loss_dict_reduced['class_error'])
-        metric_logger.update(lr=optimizer.param_groups[0]["lr"])
     # gather the stats from all processes
-    metric_logger.synchronize_between_processes()
-    print("Averaged stats:", metric_logger)
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+    return tr_loss
 
 
 @torch.no_grad()
-def evaluate(model, data_loader, base_ds, device, output_dir):
+def evaluate(model: torch.nn.Module,data_loader: Iterable,
+            accelerator:Accelerator, device, batch_size):
     model.eval()
-
-
+    losses = []
+    loss_matrixs = []
     for step, batch in enumerate(data_loader):
+        targets = batch.pop("classification").to(device)
+        batch = batch.to(device)
         outputs = model(**batch)
+        loss,loss_matrix = focal_loss(outputs, targets,eval = True)
         # Batch 
-        losses.append(accelerator.gather(loss.repeat(config.batch_size))
-    metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
-    header = 'Test:'
+        losses.append(accelerator.gather(loss.repeat(batch_size)))
+        loss_matrixs.append(accelerator.gather(loss_matrix.repeat(batch_size)))
+    
+    losses = torch.cat(losses)
+    losses = losses[: len(data_loader)]
+    loss_matrixs = torch.cat(loss_matrixs)
+    loss_matrixs = loss_matrixs[: len(data_loader)]
+    TP,TN,FN,FP = loss_matrixs.sum(dim =0).item()
+    p = TP / (TP + FP)
+    r = TP / (TP + FN)
+    F1 = 2 * r * p / (r + p)
+    acc = (TP + TN) / (TP + TN + FP + FN)
+    return {"precision": p,"recall": r ,"F1": F1,"accuarcy":acc}
 
-    iou_types = tuple(k for k in ('segm', 'bbox') if k in postprocessors.keys())
-    coco_evaluator = CocoEvaluator(base_ds, iou_types)
-    # coco_evaluator.coco_eval[iou_types[0]].params.iouThrs = [0, 0.1, 0.5, 0.75]
 
-    panoptic_evaluator = None
-    if 'panoptic' in postprocessors.keys():
-        panoptic_evaluator = PanopticEvaluator(
-            data_loader.dataset.ann_file,
-            data_loader.dataset.ann_folder,
-            output_dir=os.path.join(output_dir, "panoptic_eval"),
-        )
 
-    for samples, targets in metric_logger.log_every(data_loader, 10, header):
-        samples = samples.to(device)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-        outputs = model(samples)
-        loss_dict = criterion(outputs, targets)
-        weight_dict = criterion.weight_dict
 
-        # reduce losses over all GPUs for logging purposes
-        loss_dict_reduced = utils.reduce_dict(loss_dict)
-        loss_dict_reduced_scaled = {k: v * weight_dict[k]
-                                    for k, v in loss_dict_reduced.items() if k in weight_dict}
-        loss_dict_reduced_unscaled = {f'{k}_unscaled': v
-                                      for k, v in loss_dict_reduced.items()}
-        metric_logger.update(loss=sum(loss_dict_reduced_scaled.values()),
-                             **loss_dict_reduced_scaled,
-                             **loss_dict_reduced_unscaled)
-        metric_logger.update(class_error=loss_dict_reduced['class_error'])
 
-        orig_target_sizes = torch.stack([t["orig_size"] for t in targets], dim=0)
-        results = postprocessors['bbox'](outputs, orig_target_sizes)
-        if 'segm' in postprocessors.keys():
-            target_sizes = torch.stack([t["size"] for t in targets], dim=0)
-            results = postprocessors['segm'](results, outputs, orig_target_sizes, target_sizes)
-        res = {target['image_id'].item(): output for target, output in zip(targets, results)}
-        if coco_evaluator is not None:
-            coco_evaluator.update(res)
 
-        if panoptic_evaluator is not None:
-            res_pano = postprocessors["panoptic"](outputs, target_sizes, orig_target_sizes)
-            for i, target in enumerate(targets):
-                image_id = target["image_id"].item()
-                file_name = f"{image_id:012d}.png"
-                res_pano[i]["image_id"] = image_id
-                res_pano[i]["file_name"] = file_name
 
-            panoptic_evaluator.update(res_pano)
 
-    # gather the stats from all processes
-    metric_logger.synchronize_between_processes()
-    print("Averaged stats:", metric_logger)
-    if coco_evaluator is not None:
-        coco_evaluator.synchronize_between_processes()
-    if panoptic_evaluator is not None:
-        panoptic_evaluator.synchronize_between_processes()
 
-    # accumulate predictions from all images
-    if coco_evaluator is not None:
-        coco_evaluator.accumulate()
-        coco_evaluator.summarize()
-    panoptic_res = None
-    if panoptic_evaluator is not None:
-        panoptic_res = panoptic_evaluator.summarize()
-    stats = {k: meter.global_avg for k, meter in metric_logger.meters.items()}
-    if coco_evaluator is not None:
-        if 'bbox' in postprocessors.keys():
-            stats['coco_eval_bbox'] = coco_evaluator.coco_eval['bbox'].stats.tolist()
-        if 'segm' in postprocessors.keys():
-            stats['coco_eval_masks'] = coco_evaluator.coco_eval['segm'].stats.tolist()
-    if panoptic_res is not None:
-        stats['PQ_all'] = panoptic_res["All"]
-        stats['PQ_th'] = panoptic_res["Things"]
-        stats['PQ_st'] = panoptic_res["Stuff"]
-    return stats, coco_evaluator
+
+
+
