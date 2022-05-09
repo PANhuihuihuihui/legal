@@ -1,10 +1,16 @@
 import torch
-from torch import FUSE_ADD_RELU, nn
+from torch import nn
 import torch.nn.functional as F
 
 from .extractor import build_fuser,build_extractor
 
 class Matcher(nn.Module):
+    """
+    inputs: triblet tensor: (A,[B,C,...])
+        A: [b* D * S * E]
+        B: [b* D * S * E]
+        C: [b* D * S * E]
+    """
     def __init__(self,args,fuser) -> None:
         super().__init__()
         self.fuser = fuser

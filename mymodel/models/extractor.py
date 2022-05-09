@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 from transformers import AutoModel
 
+logger = logging.getLogger("train model")
+
 class CNN_Text(nn.Module):
     def __init__(self,embed_dim,sent_length,dropout = 0.1):
         super(CNN_Text, self).__init__()
@@ -32,10 +34,14 @@ class Extractor(nn.Module):
 
         
     def forward(self,x):
-        ec = self.back_bone(x).pooler_output
+        ec = self.back_bone(**x).pooler_output
         ec = self.dropout(ec)
         ek = self.classifier(ec)
-        return ec,ek if self.stage == 1 else ec,F.sigmoid(ek)
+        if self.stage == 1:
+            return ec,ek
+        else:
+            return ec,torch.sigmoid(ek)
+         
     #  def _init_weights(self, m):
     #     if isinstance(m, nn.Linear):
     #         trunc_normal_(m.weight, std=.02)
@@ -55,7 +61,7 @@ class Fuser(nn.Module):
     def __init__(self,args,extractor):
         super(Fuser,self).__init__()
         self.extractor = extractor
-        self.cnn = CNN_Text()
+        self.cnn = CNN_Text(args.hidden_size,args.sentence_len)
         embed_size = args.hidden_size
         self.lstm = nn.LSTM(embed_size,embed_size//2,batch_first = True,bidirectional=True)
     def forward(self,x):
@@ -79,7 +85,12 @@ class Fuser(nn.Module):
 
 def build_extractor(args):
     back_bone = AutoModel.from_pretrained(args.back_bone)
+    args.hidden_size = back_bone.config.hidden_size
     model = Extractor(args,back_bone)
+    if args.stage == 2 and args.extractor_path is not None:
+        checkpoint = torch.load(args.extractor_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        logger.info("sucessfull load stage one model")
     return model
 
 

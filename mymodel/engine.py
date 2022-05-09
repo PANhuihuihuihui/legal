@@ -13,8 +13,8 @@ import logging
 logger = logging.getLogger("train model")
 
 
-def train_one_epoch(model: torch.nn.Module, accelerator:Accelerator,
-                    data_loader: Iterable, optimizer: torch.optim.Optimizer,
+def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, accelerator:Accelerator,
+                    optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0):
     model.train()
     logger.info('Epoch: [{}]'.format(epoch))
@@ -22,11 +22,11 @@ def train_one_epoch(model: torch.nn.Module, accelerator:Accelerator,
     # metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     # metric_logger.add_meter('class_error', utils.SmoothedValue(window_size=1, fmt='{value:.2f}'))
     steps = tqdm(data_loader,ncols = 110)
-    for step,batch in enumerate(steps):
+    for batch in steps:
         targets = batch.pop("classification").to(device)
         batch = batch.to(device)
-        outputs = model(**batch)
-        loss = focal_loss(outputs, targets)
+        _,outputs = model(batch)
+        loss,_ = focal_loss(outputs, targets,device)
         loss_value = loss.item()
         tr_loss += loss_value
 
@@ -37,9 +37,9 @@ def train_one_epoch(model: torch.nn.Module, accelerator:Accelerator,
         optimizer.zero_grad()
         accelerator.backward(loss)
         if max_norm > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
+            accelerator.clip_grad_norm_(model.parameters(), max_norm)
         optimizer.step()
-        steps.set_description("Epoch {}, Loss {:.7f}".format(epoch + 1, loss.item()))
+        steps.set_description("Epoch {}, Loss {:.7f}".format(epoch + 1, loss_value))
 
     # gather the stats from all processes
     return tr_loss
@@ -50,21 +50,33 @@ def evaluate(model: torch.nn.Module,data_loader: Iterable,
             accelerator:Accelerator, device, batch_size):
     model.eval()
     losses = []
-    loss_matrixs = []
+    predictions = []
+    labels = []
     for step, batch in enumerate(data_loader):
         targets = batch.pop("classification").to(device)
         batch = batch.to(device)
-        outputs = model(**batch)
-        loss,loss_matrix = focal_loss(outputs, targets,eval = True)
-        # Batch 
+        _,outputs = model(batch)
+        loss,prediction = focal_loss(outputs, targets,device,eval = True)
+        # Batch
         losses.append(accelerator.gather(loss.repeat(batch_size)))
-        loss_matrixs.append(accelerator.gather(loss_matrix.repeat(batch_size)))
+        predictions.append(accelerator.gather(prediction))
+        labels.append(accelerator.gather(targets))
     
     losses = torch.cat(losses)
     losses = losses[: len(data_loader)]
-    loss_matrixs = torch.cat(loss_matrixs)
-    loss_matrixs = loss_matrixs[: len(data_loader)]
-    TP,TN,FN,FP = loss_matrixs.sum(dim =0).item()
+    predictions = torch.cat(predictions)
+    predictions = predictions[: len(data_loader)]
+    labels = torch.cat(labels)
+    labels = labels[: len(data_loader)]
+    TP = ((predictions.detach() == 1) & (labels.detach() == 1)).cpu().sum().item()
+    # TN    predict 和 label 同时为0
+    TN = ((predictions.detach() == 0) & (labels.detach() == -1)).cpu().sum().item()
+    # FN    predict 0 label 1
+    FN = ((predictions.detach() == 0) & (labels.detach() == 1)).cpu().sum().item()
+    # FP    predict 1 label 0
+    FP = ((predictions.detach() == 1) & (labels.detach() == -1)).cpu().sum().item()
+
+
     p = TP / (TP + FP)
     r = TP / (TP + FN)
     F1 = 2 * r * p / (r + p)

@@ -7,7 +7,9 @@ from torch import Tensor
 from torch import nn
 from torch.nn import functional as F
 
-def focal_loss(inputs: Tensor, targets: Tensor,alpha: float = 4.0,beta: float= .0,reduction: str='mean',eval: bool = False) -> Tensor:
+def focal_loss(inputs: Tensor, targets: Tensor,device,
+                alpha: float = 4.0,beta: float= .0,reduction: str='mean',
+                eval: bool = False) -> Tensor:
     """
     inputs: A float tensor of arbitrary shape.
                 The predictions for each example.
@@ -16,25 +18,25 @@ def focal_loss(inputs: Tensor, targets: Tensor,alpha: float = 4.0,beta: float= .
             (-1 for the negative class and 1 for the positive class).
     """
 
-    loss_matrix = None
-    (TP,TN,FN,FP) = 0,0,0,0
+    prediction = None
     if eval:
-        loss_matrix = (F.sigmoid(inputs.mul(alpha).add(beta)) > 0.5).float()
-        TP += ((inputs == 1) & (targets.detach() == 1)).cpu().sum()
-        # TN    predict 和 label 同时为0
-        TN += ((inputs == 0) & (targets.detach() == -1)).cpu().sum()
-        # FN    predict 0 label 1
-        FN += ((inputs == 0) & (targets.detach() == 1)).cpu().sum()
-        # FP    predict 1 label 0
-        FP += ((inputs == 1) & (targets.detach() == -1)).cpu().sum()
-        loss_matrix = torch.tensor([TP,TN,FN,FP])
-    loss = F.logsigmoid(inputs.mul(targets).mul(alpha).add(beta),dim = -1)
-    loss = loss.sum(dim = -1).div(alpha) # b 
+        prediction = (torch.sigmoid(inputs.mul(alpha).add(beta)) > 0.5).float()
+        # TP += ((inputs == 1) & (targets.detach() == 1)).cpu().sum()
+        # # TN    predict 和 label 同时为0
+        # TN += ((inputs == 0) & (targets.detach() == -1)).cpu().sum()
+        # # FN    predict 0 label 1
+        # FN += ((inputs == 0) & (targets.detach() == 1)).cpu().sum()
+        # # FP    predict 1 label 0
+        # FP += ((inputs == 1) & (targets.detach() == -1)).cpu().sum()
+        # loss_matrix = torch.tensor([TP,TN,FN,FP]).to(device)
+    # print(inputs.shape,targets.shape)
+    loss = F.logsigmoid(inputs.mul(targets).mul(alpha).add(beta))
+    loss = loss.sum(dim = -1).div(-alpha) # b 
     if reduction == 'mean':
         loss = loss.mean()
     elif reduction == 'sum':
         loss = loss.sum()
-    return loss, loss_matrix
+    return loss, prediction
     
 def eval_matrix(inputs: Tensor, targets: Tensor,alpha: float = 4.0,beta: float= .0):
     inputs = (F.sigmoid(inputs.mul(alpha).add(beta)) > 0.5).float()

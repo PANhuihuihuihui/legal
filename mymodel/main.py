@@ -31,17 +31,18 @@ def get_args_parser():
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=10, type=int)
-    parser.add_argument('--lr_drop', default=6, type=int)
+    parser.add_argument('--lr_drop', default=9, type=int)
     parser.add_argument('--clip_max_norm', default=1, type=float,
                         help='gradient clipping max norm')
 
     # Model parameters
     parser.add_argument('--stage', default=2, type=int)
     parser.add_argument('--num_labels', default=60, type=int)
+    parser.add_argument('--sentence_len', default=256, type=int)
     parser.add_argument('--frozen_weights', type=str, default=None,
                         help="Path to the pretrained model. If set, only the mask head will be trained")
     # * Backbone
-    parser.add_argument('--back_bone', default='bert-base-multilingual-uncased', type=str,
+    parser.add_argument('--back_bone', default='bert-base-multilingual-cased', type=str,
                         help="Name of the bert backbone to use")
 
 
@@ -78,6 +79,8 @@ def get_args_parser():
 
 
 def main(args):
+    accelerator = Accelerator()
+
     #logging
     logger = logging.getLogger("train model")
     logger.setLevel(logging.INFO)
@@ -95,6 +98,7 @@ def main(args):
     ch.setFormatter(formatter)
     logger.addHandler(fh)
     logger.addHandler(ch)
+    logger.setLevel(logging.INFO if accelerator.is_local_main_process else logging.ERROR)
 
 
     device = torch.device(args.device)
@@ -111,23 +115,31 @@ def main(args):
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('number of params:', n_parameters)
 
+    # no_decay = ["bias", "LayerNorm.weight"]
+    # optimizer_grouped_parameters = [
+    #     {
+    #         "params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
+    #         "weight_decay": args.weight_decay,
+    #     },
+    #     {
+    #         "params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
+    #         "weight_decay": 0.0,
+    #     },
+    # ]
+
     param_dicts = [
-        {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+        {"params": [p for n, p in model.named_parameters() if "back_bone" not in n and p.requires_grad]},
         {
-            "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+            "params": [p for n, p in model.named_parameters() if "back_bone" in n and p.requires_grad],
             "lr": args.lr_backbone,
         },
     ] #TODO check the backbone name
-    logger.info(
-            "named_parameters: {}".format(
-                json.dumps(model.named_parameters(), indent=4, sort_keys=True)
-            )
-        )
+    # param_name = [n for n, p in model.named_parameters()]
+    logger.info(args)
 
     optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
                                   weight_decay=args.weight_decay)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
-    accelerator = Accelerator()
     with accelerator.main_process_first():
         dataset_train,dataset_val,data_collator = build_dataset(args)
     
@@ -160,7 +172,7 @@ def main(args):
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         train_stats = train_one_epoch(
-            model, train_dataloader, optimizer, device, epoch,
+            model, train_dataloader, accelerator,optimizer, device, epoch,
             args.clip_max_norm)
         lr_scheduler.step()
         # if args.output_dir and (epoch + 1) % 3 == 0:
@@ -178,21 +190,15 @@ def main(args):
         )
         logger.info(test_stats)
 
-        # if args.output_dir and utils.is_main_process():
-        #     # for evaluation logs
-        #     if coco_evaluator is not None:
-        #         (output_dir / 'eval').mkdir(exist_ok=True)
-        #         if "bbox" in coco_evaluator.coco_eval:
-        #             filenames = ['latest.pth']
-        #             if epoch % 50 == 0:
-        #                 filenames.append(f'{epoch:03}.pth')
-        #             for name in filenames:
-        #                 torch.save(coco_evaluator.coco_eval["bbox"].eval,
-        #                            output_dir / "eval" / name)
+
 
         accelerator.wait_for_everyone()
-        unwrapped_model = accelerator.unwrap_model(model)
-        unwrapped_model.save_pretrained(args.output_dir, save_function=accelerator.save)
+        if args.output_dir and accelerator.is_local_main_process:
+            name = 'latest.pth'
+            unwrapped_model = accelerator.unwrap_model(model)
+            accelerator.save(unwrapped_model,output_dir / name)
+
+
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
