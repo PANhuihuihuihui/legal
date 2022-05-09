@@ -9,6 +9,9 @@ pretrained/*
 
 # pytorch training 
 *.bin
+*.pth
+
+*.json
 
 # C extensions
 *.so
